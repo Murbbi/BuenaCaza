@@ -1,0 +1,209 @@
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 14px;
+    -fx-background-color: #f4f7f5;
+    -fx-text-fill: #19332c;
+}
+
+.page-background {
+    -fx-background-color: #f4f7f5;
+}
+
+.page-title {
+    -fx-font-size: 27px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #153e33;
+}
+
+.page-subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #71827b;
+}
+
+.section-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #153e33;
+}
+
+.registration-brand {
+    -fx-font-size: 23px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #08745b;
+}
+
+.brand-title {
+    -fx-font-size: 34px;
+    -fx-font-weight: 800;
+    -fx-text-fill: white;
+}
+
+.brand-caption {
+    -fx-font-size: 15px;
+    -fx-text-fill: #d4e7df;
+}
+
+.eyebrow {
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #0a9a77;
+}
+
+.field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #354e45;
+}
+
+.form-control {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-border-color: #dbe5e0;
+    -fx-border-radius: 8px;
+    -fx-padding: 11px 12px;
+    -fx-text-fill: #19332c;
+    -fx-prompt-text-fill: #9aa9a3;
+}
+
+.form-control:focused {
+    -fx-border-color: #0d9b78;
+    -fx-effect: dropshadow(gaussian, rgba(13, 155, 120, 0.14), 8, 0, 0, 2);
+}
+
+.button {
+    -fx-cursor: hand;
+    -fx-font-weight: 700;
+    -fx-background-radius: 8px;
+    -fx-padding: 11px 16px;
+}
+
+.button-primary {
+    -fx-background-color: #08745b;
+    -fx-text-fill: white;
+}
+
+.button-primary:hover {
+    -fx-background-color: #05634d;
+}
+
+.button-secondary {
+    -fx-background-color: #e4f2ed;
+    -fx-text-fill: #08745b;
+}
+
+.button-secondary:hover {
+    -fx-background-color: #d2e9e0;
+}
+
+.button-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #08745b;
+    -fx-padding: 6px 0;
+}
+
+.button-link:hover {
+    -fx-underline: true;
+}
+
+.sidebar {
+    -fx-background-color: #104638;
+}
+
+.sidebar-brand {
+    -fx-font-size: 23px;
+    -fx-font-weight: 800;
+    -fx-text-fill: white;
+}
+
+.sidebar-caption {
+    -fx-text-fill: #c6ddd4;
+    -fx-font-size: 12px;
+}
+
+.nav-button {
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-color: transparent;
+    -fx-text-fill: #dcebe5;
+    -fx-font-weight: 600;
+    -fx-padding: 11px 14px;
+}
+
+.nav-button:hover, .nav-button-active {
+    -fx-background-color: #1b604d;
+    -fx-text-fill: white;
+}
+
+.metric-card, .content-card, .form-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+    -fx-border-color: #e2eae6;
+    -fx-border-radius: 12px;
+}
+
+.metric-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #70827a;
+}
+
+.metric-value {
+    -fx-font-size: 25px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #153e33;
+}
+
+.metric-detail {
+    -fx-font-size: 11px;
+    -fx-text-fill: #899991;
+}
+
+.table-view {
+    -fx-background-color: white;
+    -fx-background-radius: 8px;
+    -fx-border-color: #e2eae6;
+    -fx-border-radius: 8px;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #edf4f0;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+    -fx-size: 38px;
+}
+
+.table-view .column-header .label {
+    -fx-font-weight: 700;
+    -fx-text-fill: #456057;
+}
+
+.table-row-cell {
+    -fx-cell-size: 38px;
+    -fx-border-color: transparent transparent #eff3f1 transparent;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #dff2eb;
+}
+
+.login-art {
+    -fx-background-color: linear-gradient(to bottom right, #0c604b, #0e9d78);
+}
+
+.login-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(21, 62, 51, 0.12), 24, 0, 0, 8);
+}
+
+.status-note {
+    -fx-text-fill: #83938c;
+    -fx-font-size: 12px;
+}
+
+.price-total {
+    -fx-font-size: 26px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #08745b;
+}

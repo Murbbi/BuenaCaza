@@ -1,0 +1,76 @@
+Los cinco puntos son los del paso a paso que te di antes (driver, conexión, modelo, DAO y prueba). Acá va cada uno sin Maven y con una idea simple de qué hace.
+
+Antes de empezar: tu carpeta tiene pom.xml
+
+Tu carpeta BuenaCazaApp ya trae un pom.xml, o sea que se creó como proyecto Maven. Si no querés usar Maven, lo más limpio es crear un proyecto nuevo sin esa herramienta:
+
+Ctrl + Shift + P → Java: Create Java Project.
+Elegí No build tools.
+Ponele el nombre (por ejemplo BuenaCazaApp2) y copiá ahí tu PDF y el README si querés.
+
+Así te queda src/, lib/ y bin/, sin pom.xml ni target/. Si dejás el proyecto Maven y agregás el .jar a mano, VS Code puede ignorarlo, porque en esos proyectos manda el pom.xml.
+
+1. Agregar el driver
+
+Qué es: Java no sabe hablar con MySQL por sí solo. El driver (un archivo .jar) es el "traductor" entre los dos.
+
+Cómo, sin Maven:
+
+Descargá el MySQL Connector/J desde dev.mysql.com/downloads/connector/j. En "Select Operating System" elegí Platform Independent y bajá el .zip.
+Descomprimilo. Adentro hay un archivo mysql-connector-j-x.x.x.jar.
+En tu proyecto, creá la carpeta lib (si no existe) y copiá el .jar ahí.
+Avisale al proyecto que lo use: en el panel Java Projects → Referenced Libraries → botón + → elegí el .jar. O, más fácil, en .vscode/settings.json:
+json
+{
+  "java.project.referencedLibraries": ["lib/**/*.jar"]
+}
+
+Sin este paso, Java no encuentra al "traductor" y falla con No suitable driver.
+
+2. Clase de conexión (Conexion)
+
+Qué es: la "puerta" a tu base de datos. Guarda en un solo lugar tres datos: dónde está la base (jdbc:mysql://localhost:3306/buena_caza), el usuario y la contraseña (los mismos que usás en Workbench).
+
+Tiene un método getConexion() que, cada vez que lo llamás, abre una conexión. Todas las demás clases la usan, así que si cambia la contraseña, la cambiás en un solo lugar.
+
+Va en src/conexion/Conexion.java. No cambia nada por no usar Maven.
+
+3. Clase modelo (Cabana) con getters y setters
+
+Qué es: un "molde" que representa una fila de la tabla. Tiene un atributo por cada columna: idCabana, nombre, capacidad y estado.
+
+Los atributos son private, entonces desde afuera no se tocan directamente.
+Los getters (getNombre()) sirven para leer un valor.
+Los setters (setNombre("...")) sirven para cambiarlo.
+
+Cuando leés la base, creás un Cabana vacío y lo llenás con los setters. Cuando guardás, sacás los datos con los getters. Va en src/modelo/Cabana.java. Tampoco cambia sin Maven.
+
+4. Clase DAO (CabanaDAO)
+
+Qué es: el "mozo" que va a la base a buscar o llevar datos. Acá se escribe el SQL.
+
+listar() hace SELECT ... FROM cabana, recorre cada fila del resultado y arma un objeto Cabana por cada una. Devuelve una lista de cabañas.
+insertar(c) hace un INSERT, tomando los datos del objeto con los getters.
+
+Los signos ? del SQL son huecos que se rellenan con ps.setString(1, ...). Eso evita errores y problemas de seguridad. Va en src/dao/CabanaDAO.java.
+
+5. Probar todo (App)
+
+Qué es: la clase con el método main, que es por donde arranca el programa. Crea un CabanaDAO, llama a listar() y muestra cada cabaña en pantalla.
+
+Sin Maven, lo ejecutás con el botón Run que aparece arriba de main (o F5). VS Code compila solo y deja los archivos compilados en bin/. Si todo está bien, deberías ver:
+
+1 - Waingunga (capacidad: 4, libre)
+2 - Seeonee (capacidad: 4, libre)
+Estructura final sin Maven
+BuenaCazaApp/
+├── lib/
+│   └── mysql-connector-j-x.x.x.jar
+├── src/
+│   ├── App.java
+│   ├── conexion/Conexion.java
+│   ├── modelo/Cabana.java
+│   └── dao/CabanaDAO.java
+└── bin/        (se genera solo)
+
+Si querés, decime cuál de los cinco puntos te sigue sin cerrar y lo vemos con un ejemplo más chico (por ejemplo, solo la conexión funcionando y nada más).
