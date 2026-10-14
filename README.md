@@ -17,6 +17,8 @@ Para una base que ya existe, ejecutá `Documentos/Base de datos/migracion_acceso
 
 El acceso usa el correo y la contraseña guardada como hash PBKDF2-HMAC-SHA256 con salt aleatorio; nunca se almacena la contraseña en texto plano. La contraseña debe tener entre 12 y 128 caracteres. `es_admin` es la única fuente para elegir el panel administrador o el portal de reservas.
 
+La pantalla de inicio de sesión viene precargada con el correo `matias@gmail.com` y la contraseña de desarrollo `1234567891011`. Esos valores están escritos en el código para facilitar las pruebas locales: cambialos o quitá el precargado antes de distribuir o desplegar la aplicación y no uses esa contraseña en producción.
+
 Al registrarse con un invitado ya cargado, ingresá el mismo correo y DNI para asignarle una contraseña. Esto también permite configurar el acceso del administrador que viene en los datos iniciales. Los invitados nuevos quedan con `es_admin = 0`.
 
 La configuración de conexión usa estas variables de entorno:

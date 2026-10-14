@@ -1,15 +1,16 @@
 package vista;
 
 import controlador.ReservaController;
+import controlador.ReservaController.Presupuesto;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -19,17 +20,15 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import modelo.Cabana;
 import modelo.Invitado;
-import modelo.ReservaDetalle;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
+import java.text.NumberFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class VentanaReserva {
-    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
     private final Stage stage;
     private final Invitado invitado;
     private final ReservaController reservaController;
@@ -40,7 +39,11 @@ public class VentanaReserva {
     private final TextArea comentario = new TextArea();
     private final Label total = new Label("—");
     private final Label avisoCotizacion = new Label("Seleccioná una cabaña y fechas para calcular el total.");
-    private final TableView<ReservaDetalle> tablaReservas = new TableView<>();
+    private final Label errorCotizacion = new Label();
+    private final Label resumenNoches = new Label("Noches de estadía: —");
+    private final Label resumenTarifa = new Label("Tarifa de temporada: —");
+    private final Label resumenDescuento = new Label("Descuento de fidelidad: —");
+    private final Label resumenTotal = new Label("COSTO TOTAL NETO: —");
 
     public VentanaReserva(Stage stage, Invitado invitado, Runnable alCerrarSesion) {
         this(stage, invitado, new ReservaController(), alCerrarSesion);
@@ -58,11 +61,16 @@ public class VentanaReserva {
         BorderPane raiz = new BorderPane();
         raiz.getStyleClass().add("page-background");
         raiz.setTop(encabezado());
-        raiz.setCenter(contenido());
+        raiz.setCenter(crearContenidoPanel());
         Scene escena = new Scene(raiz, 1240, 820);
         ComponentesUI.aplicarEstilos(escena);
-        cargarDatos();
         return escena;
+    }
+
+    public Node crearContenidoPanel() {
+        Node panel = contenido();
+        cargarDatos();
+        return panel;
     }
 
     private HBox encabezado() {
@@ -93,16 +101,9 @@ public class VentanaReserva {
                 "Elegí las fechas y la cabaña. El valor se calcula automáticamente según la temporada.");
 
         VBox panelReserva = formularioReserva();
-        VBox panelHistorial = new VBox(16,
-                ComponentesUI.titulo("Mis reservas"),
-                ComponentesUI.subtitulo("Consultá las fechas y el detalle de tus estadías."));
-        panelHistorial.getStyleClass().add("content-card");
-        panelHistorial.setPadding(new Insets(24));
-        configurarTablaReservas();
-        panelHistorial.getChildren().add(tablaReservas);
-        VBox.setVgrow(tablaReservas, Priority.ALWAYS);
+        VBox panelPresupuesto = panelPresupuesto();
 
-        VBox cuerpo = new VBox(22, contexto, titulo, descripcion, panelReserva, panelHistorial);
+        VBox cuerpo = new VBox(22, contexto, titulo, descripcion, panelReserva, panelPresupuesto);
         cuerpo.setPadding(new Insets(32, 46, 40, 46));
         ScrollPane scroll = new ScrollPane(cuerpo);
         scroll.setFitToWidth(true);
@@ -137,7 +138,14 @@ public class VentanaReserva {
         etiquetaTotal.getStyleClass().add("metric-label");
         total.getStyleClass().add("price-total");
         avisoCotizacion.getStyleClass().add("status-note");
-        VBox valor = new VBox(5, etiquetaTotal, total, avisoCotizacion);
+        avisoCotizacion.setWrapText(true);
+        errorCotizacion.getStyleClass().add("quote-error-message");
+        errorCotizacion.setWrapText(true);
+        VBox panelError = new VBox(errorCotizacion);
+        panelError.getStyleClass().add("quote-error-panel");
+        panelError.setVisible(false);
+        panelError.setManaged(false);
+        VBox valor = new VBox(5, etiquetaTotal, total, avisoCotizacion, panelError);
         var confirmar = ComponentesUI.boton("Confirmar reserva", "button-primary", this::confirmarReserva);
         confirmar.setMaxWidth(210);
         HBox pie = new HBox(20, valor, confirmar);
@@ -153,22 +161,22 @@ public class VentanaReserva {
         return panel;
     }
 
-    private void configurarTablaReservas() {
-        tablaReservas.getColumns().setAll(java.util.List.of(
-                ColumnaTabla.crear("Cabaña", ReservaDetalle::getCabana),
-                ColumnaTabla.crear("Entrada", reserva -> fecha(reserva.getFechaEntrada())),
-                ColumnaTabla.crear("Salida", reserva -> fecha(reserva.getFechaSalida())),
-                ColumnaTabla.crear("Temporada", ReservaDetalle::getTemporada),
-                ColumnaTabla.crear("Total", reserva -> moneda(reserva.getMontoTotal()))));
-        tablaReservas.setPlaceholder(new Label("Todavía no tenés reservas."));
-        tablaReservas.setPrefHeight(220);
+    private VBox panelPresupuesto() {
+        Label encabezado = new Label("RESUMEN DEL PRESUPUESTO AUTOMÁTICO");
+        encabezado.getStyleClass().add("section-title");
+        resumenTotal.getStyleClass().add("price-total");
+        VBox panel = new VBox(10, encabezado, resumenNoches, resumenTarifa,
+                resumenDescuento, resumenTotal);
+        panel.getStyleClass().add("content-card");
+        panel.setPadding(new Insets(22));
+        panel.setStyle("-fx-background-color: #e4f5fc; -fx-border-color: #8bd8f4; "
+                + "-fx-border-radius: 18px; -fx-background-radius: 18px;");
+        return panel;
     }
 
     private void cargarDatos() {
         try {
             cabanas.setItems(FXCollections.observableArrayList(reservaController.listarCabanas()));
-            tablaReservas.setItems(FXCollections.observableArrayList(
-                    reservaController.listarReservasDelInvitado(invitado.getIdInvitado())));
             actualizarCotizacion();
         } catch (SQLException exception) {
             ComponentesUI.mostrarError(stage, "No se pudieron cargar las reservas",
@@ -178,34 +186,74 @@ public class VentanaReserva {
     }
 
     private void actualizarCotizacion() {
+        limpiarErrorCotizacion();
         Cabana cabana = cabanas.getValue();
         if (cabana == null || entrada.getValue() == null || salida.getValue() == null) {
             total.setText("—");
             avisoCotizacion.setText("Seleccioná una cabaña y fechas para calcular el total.");
+            limpiarResumenPresupuesto();
             return;
         }
         try {
-            BigDecimal precio = reservaController.cotizar(invitado,
+            Presupuesto presupuesto = reservaController.cotizarPresupuesto(invitado,
                     cabana.getIdCabana(), entrada.getValue(), salida.getValue());
-            total.setText(moneda(precio));
-            String noches = java.time.temporal.ChronoUnit.DAYS.between(
-                    entrada.getValue(), salida.getValue()) + " noches.";
-            avisoCotizacion.setText(invitado.isComunidad()
-                    ? "Incluye el 10% de descuento por fidelidad · " + noches
-                    : "Importe estimado para " + noches);
+            total.setText(moneda(presupuesto.total()));
+            resumenNoches.setText("* Noches de estadía: " + presupuesto.noches() + " noches");
+            resumenTarifa.setText("* Tarifa Temporada " + textoTemporada(presupuesto.temporada())
+                    + ": " + moneda(presupuesto.precioPorNoche()) + " / noche = "
+                    + moneda(presupuesto.subtotal()));
+            resumenDescuento.setText(presupuesto.aplicaDescuento()
+                    ? "* Descuento Fidelidad (10% Comunidad): " + moneda(presupuesto.descuento())
+                    : "* Descuento Fidelidad: " + moneda(presupuesto.descuento()));
+            resumenTotal.setText("COSTO TOTAL NETO: " + moneda(presupuesto.total()));
+            avisoCotizacion.setText("Presupuesto calculado para " + presupuesto.noches() + " noches.");
         } catch (IllegalArgumentException exception) {
             total.setText("—");
-            avisoCotizacion.setText(exception.getMessage());
+            mostrarErrorCotizacion(exception.getMessage());
+            limpiarResumenPresupuesto();
+        } catch (IllegalStateException exception) {
+            total.setText("—");
+            mostrarErrorCotizacion(exception.getMessage());
+            limpiarResumenPresupuesto();
         } catch (SQLException exception) {
             total.setText("—");
-            avisoCotizacion.setText("No se pudo calcular el precio: " + exception.getMessage());
+            String error = "No se pudo calcular el precio: " + exception.getMessage();
+            mostrarErrorCotizacion(error);
+            limpiarResumenPresupuesto();
         }
+    }
+
+    private void limpiarResumenPresupuesto() {
+        resumenNoches.setText("* Noches de estadía: —");
+        resumenTarifa.setText("* Tarifa de temporada: —");
+        resumenDescuento.setText("* Descuento de fidelidad: —");
+        resumenTotal.setText("COSTO TOTAL NETO: —");
+    }
+
+    private void mostrarErrorCotizacion(String mensaje) {
+        errorCotizacion.setText(mensaje);
+        errorCotizacion.getParent().setVisible(true);
+        errorCotizacion.getParent().setManaged(true);
+        avisoCotizacion.setVisible(false);
+        avisoCotizacion.setManaged(false);
+    }
+
+    private void limpiarErrorCotizacion() {
+        errorCotizacion.setText("");
+        errorCotizacion.getParent().setVisible(false);
+        errorCotizacion.getParent().setManaged(false);
+        avisoCotizacion.setVisible(true);
+        avisoCotizacion.setManaged(true);
+    }
+
+    private String textoTemporada(String temporada) {
+        return temporada == null || temporada.isBlank() ? "sin nombre" : temporada;
     }
 
     private void confirmarReserva() {
         Cabana cabana = cabanas.getValue();
         if (cabana == null) {
-            avisoCotizacion.setText("Seleccioná una cabaña disponible.");
+            mostrarErrorCotizacion("Seleccioná una cabaña disponible.");
             return;
         }
         try {
@@ -216,21 +264,20 @@ public class VentanaReserva {
             comentario.clear();
             cargarDatos();
         } catch (IllegalArgumentException | IllegalStateException exception) {
-            avisoCotizacion.setText(exception.getMessage());
+            mostrarErrorCotizacion(exception.getMessage());
         } catch (SQLException exception) {
-            ComponentesUI.mostrarError(stage, "No se pudo guardar la reserva",
-                    "La operación no se completó en la base de datos.\n\n" + exception.getMessage());
+            mostrarErrorCotizacion("No se pudo guardar la reserva: " + exception.getMessage());
         }
-    }
-
-    private String fecha(LocalDate valor) {
-        return valor.format(FORMATO_FECHA);
     }
 
     private String moneda(BigDecimal valor) {
         if (valor == null) {
             return "—";
         }
-        return java.text.NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR")).format(valor);
+        NumberFormat formato = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"));
+        formato.setMinimumFractionDigits(0);
+        formato.setMaximumFractionDigits(0);
+        formato.setRoundingMode(RoundingMode.HALF_UP);
+        return formato.format(valor);
     }
 }

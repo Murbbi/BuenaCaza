@@ -16,14 +16,11 @@ public class BuenaCazaApp extends Application {
     public void start(Stage escenario) {
         this.escenario = escenario;
         escenario.setTitle("Buena Caza | Reservas");
-        escenario.setMinWidth(900);
-        escenario.setMinHeight(650);
         mostrarLogin();
         escenario.show();
     }
 
     private void mostrarLogin() {
-        escenario.setMaximized(false);
         VentanaLogin login = new VentanaLogin(escenario, autenticacionController,
                 this::abrirSesion, this::mostrarRegistro);
         cambiarEscena(login.crearEscena());
@@ -37,19 +34,33 @@ public class BuenaCazaApp extends Application {
 
     private void abrirSesion(Invitado invitado) {
         if (invitado.isEsAdmin()) {
-            PantallaAdmin pantalla = new PantallaAdmin(escenario, invitado, this::mostrarLogin);
-            cambiarEscena(pantalla.crearEscena());
-            escenario.setMaximized(true);
+            mostrarAdmin(invitado);
             return;
         }
         VentanaReserva portal = new VentanaReserva(escenario, invitado, this::mostrarLogin);
         cambiarEscena(portal.crearEscena());
-        escenario.setMaximized(true);
+    }
+
+    private void mostrarAdmin(Invitado invitado) {
+        PantallaAdmin pantalla = new PantallaAdmin(escenario, invitado, this::mostrarLogin);
+        cambiarEscena(pantalla.crearEscena());
     }
 
     private void cambiarEscena(Scene escena) {
+        boolean maximizada = escenario.isMaximized();
+        double ancho = escenario.getWidth();
+        double alto = escenario.getHeight();
+        double x = escenario.getX();
+        double y = escenario.getY();
         escenario.setScene(escena);
-        escenario.sizeToScene();
+        if (maximizada) {
+            escenario.setMaximized(true);
+        } else {
+            escenario.setX(x);
+            escenario.setY(y);
+            escenario.setWidth(ancho);
+            escenario.setHeight(alto);
+        }
     }
 
     @Override

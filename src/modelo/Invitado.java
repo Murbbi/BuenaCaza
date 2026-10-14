@@ -28,6 +28,17 @@ public class Invitado {
         this.esAdmin = esAdmin;
     }
 
+    public Invitado(int idInvitado, int dni, String email, String nombre,
+            String telefono, String direccion) {
+        this.idInvitado = idInvitado;
+        this.dni = dni;
+        this.email = email;
+        this.nombre = nombre;
+        this.telefono = telefono;
+        this.direccion = direccion;
+        this.esAdmin = false;
+    }
+
     public int getIdInvitado() {
         return idInvitado;
     }

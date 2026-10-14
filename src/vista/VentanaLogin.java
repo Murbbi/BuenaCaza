@@ -18,6 +18,9 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class VentanaLogin {
+    private static final String EMAIL_DESARROLLO = "matias@gmail.com";
+    private static final String CONTRASENA_DESARROLLO = "1234567891011";
+
     private final Stage stage;
     private final AutenticacionController autenticacionController;
     private final Consumer<Invitado> alIngresar;
@@ -48,8 +51,10 @@ public class VentanaLogin {
         Label titulo = ComponentesUI.titulo("Iniciar sesión");
         Label subtitulo = ComponentesUI.subtitulo("Ingresá con tu correo y contraseña para continuar.");
         TextField email = new TextField();
+        email.setText(EMAIL_DESARROLLO);
         email.setPromptText("nombre@correo.com");
         PasswordField contrasena = new PasswordField();
+        contrasena.setText(CONTRASENA_DESARROLLO);
         contrasena.setPromptText("Tu contraseña");
         Label estado = ComponentesUI.subtitulo("");
         estado.setWrapText(true);
@@ -77,6 +82,7 @@ public class VentanaLogin {
 
     private void ingresar(TextField email, PasswordField contrasena, Label estado) {
         char[] clave = contrasena.getText().toCharArray();
+        boolean ingresoExitoso = false;
         try {
             Invitado invitado = autenticacionController.iniciarSesion(email.getText(), clave);
             if (invitado == null) {
@@ -84,6 +90,7 @@ public class VentanaLogin {
                 return;
             }
             estado.setText("");
+            ingresoExitoso = true;
             alIngresar.accept(invitado);
         } catch (SQLException exception) {
             ComponentesUI.mostrarError(stage, "No se pudo iniciar sesión",
@@ -91,7 +98,9 @@ public class VentanaLogin {
                             + exception.getMessage());
         } finally {
             Arrays.fill(clave, '\0');
-            contrasena.clear();
+            if (ingresoExitoso) {
+                contrasena.clear();
+            }
         }
     }
 }

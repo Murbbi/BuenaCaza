@@ -17,6 +17,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class ReservaController {
+    public record Presupuesto(long noches, String temporada, BigDecimal precioPorNoche,
+            BigDecimal subtotal, BigDecimal descuento, BigDecimal total, boolean aplicaDescuento) {
+    }
+
     private final CabanaDAO cabanaDAO;
     private final TemporadaDAO temporadaDAO;
     private final ReservaDAO reservaDAO;
@@ -43,12 +47,24 @@ public class ReservaController {
 
     public BigDecimal cotizar(Invitado invitado, int idCabana, LocalDate entrada, LocalDate salida)
             throws SQLException {
+        return cotizarPresupuesto(invitado, idCabana, entrada, salida).total();
+    }
+
+    public Presupuesto cotizarPresupuesto(Invitado invitado, int idCabana,
+            LocalDate entrada, LocalDate salida) throws SQLException {
         validarFechas(entrada, salida);
         validarCabana(idCabana);
         if (!reservaDAO.estaDisponible(idCabana, entrada, salida)) {
             throw new IllegalArgumentException("La cabaña no está libre para esas fechas.");
         }
-        return calcularTotal(invitado, temporadaParaFechas(entrada, salida), entrada, salida);
+        Temporada temporada = temporadaParaFechas(entrada, salida);
+        boolean aplicaDescuento = invitado.isComunidad();
+        BigDecimal total = calcularTotal(temporada, entrada, salida, aplicaDescuento);
+        long noches = ChronoUnit.DAYS.between(entrada, salida);
+        BigDecimal subtotal = temporada.getPrecioPorNoche().multiply(BigDecimal.valueOf(noches));
+        BigDecimal descuento = subtotal.subtract(total);
+        return new Presupuesto(noches, temporada.getTipo(), temporada.getPrecioPorNoche(),
+                subtotal, descuento, total, aplicaDescuento);
     }
 
     public BigDecimal crearReserva(Invitado invitado, int idCabana, LocalDate entrada,
@@ -56,7 +72,7 @@ public class ReservaController {
         validarFechas(entrada, salida);
         validarCabana(idCabana);
         Temporada temporada = temporadaParaFechas(entrada, salida);
-        BigDecimal total = calcularTotal(invitado, temporada, entrada, salida);
+        BigDecimal total = calcularTotal(temporada, entrada, salida, invitado.isComunidad());
         Reserva reserva = new Reserva(0, idCabana, invitado.getIdInvitado(), temporada.getIdTemporada(),
                 entrada, salida, total, comentario == null || comentario.isBlank() ? null : comentario.trim());
         if (!reservaDAO.insertarSiDisponible(reserva)) {
@@ -80,14 +96,14 @@ public class ReservaController {
         return temporada;
     }
 
-    private BigDecimal calcularTotal(Invitado invitado, Temporada temporada,
-            LocalDate entrada, LocalDate salida) throws SQLException {
+    private BigDecimal calcularTotal(Temporada temporada, LocalDate entrada, LocalDate salida,
+            boolean aplicaDescuento) {
         if (temporada.getPrecioPorNoche() == null) {
             throw new IllegalStateException("La temporada no tiene un precio configurado.");
         }
         long noches = ChronoUnit.DAYS.between(entrada, salida);
         BigDecimal total = temporada.getPrecioPorNoche().multiply(BigDecimal.valueOf(noches));
-        if (invitado.isComunidad()) {
+        if (aplicaDescuento) {
             total = total.multiply(new BigDecimal("0.90"));
         }
         return total.setScale(2, RoundingMode.HALF_UP);

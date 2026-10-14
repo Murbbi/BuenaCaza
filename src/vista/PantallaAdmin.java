@@ -5,9 +5,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.event.ActionEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -23,9 +27,13 @@ import javafx.stage.Stage;
 import modelo.Invitado;
 import modelo.ReservaDetalle;
 import modelo.Temporada;
+import modelo.TemporadaTipo;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
+import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +50,8 @@ public class PantallaAdmin {
     private final Runnable alCerrarSesion;
     private final BorderPane raiz = new BorderPane();
     private final VBox menu = new VBox(7);
-    private String tituloPagina = "Resumen";
-    private String descripcionPagina = "Estado general de la operación y accesos de administración.";
+    private String tituloPagina = "Gestionar invitados";
+    private String descripcionPagina = "Consultá los datos de contacto, el rol y si cada huésped ya tiene reservas.";
     private Button menuSeleccionado;
 
     public PantallaAdmin(Stage stage, Invitado invitado, Runnable alCerrarSesion) {
@@ -65,7 +73,7 @@ public class PantallaAdmin {
         raiz.getStyleClass().add("page-background");
         Scene escena = new Scene(raiz, 1320, 840);
         ComponentesUI.aplicarEstilos(escena);
-        mostrarResumen();
+        mostrarInvitados();
         return escena;
     }
 
@@ -77,11 +85,11 @@ public class PantallaAdmin {
         VBox identidad = new VBox(5, marca, panel);
         identidad.setPadding(new Insets(10, 5, 28, 5));
 
-        agregarOpcion("Resumen", this::mostrarResumen);
         agregarOpcion("Gestionar invitados", this::mostrarInvitados);
         agregarOpcion("Temporadas y tarifas", this::mostrarTemporadas);
         agregarOpcion("Reporte de ocupación", this::mostrarOcupacion);
         agregarOpcion("Reporte de invitados", this::mostrarReporteInvitados);
+        agregarOpcion("Panel de invitado", this::mostrarPanelInvitado);
 
         var salir = ComponentesUI.boton("Cerrar sesión", "nav-button", alCerrarSesion);
         VBox panelLateral = new VBox(14, identidad, menu, new javafx.scene.layout.Region(), salir);
@@ -127,42 +135,9 @@ public class PantallaAdmin {
         return barra;
     }
 
-    private void mostrarResumen() {
-        actualizarTitulos("Resumen", "Vista general de reservas, huéspedes y tarifas.");
-        try {
-            List<Invitado> invitados = adminController.listarInvitados();
-            List<Temporada> temporadas = adminController.listarTemporadas();
-            List<ReservaDetalle> reservas = adminController.listarReservas();
-            HBox indicadores = new HBox(16,
-                    ComponentesUI.tarjeta("RESERVAS REGISTRADAS", String.valueOf(reservas.size()),
-                            "Estadías guardadas en la base"),
-                    ComponentesUI.tarjeta("INVITADOS", String.valueOf(invitados.size()),
-                            "Personas registradas en la base"),
-                    ComponentesUI.tarjeta("TEMPORADAS", String.valueOf(temporadas.size()),
-                            "Tramos tarifarios configurados"));
-            indicadores.setFillHeight(true);
-            VBox resumen = new VBox(24,
-                    ComponentesUI.titulo("Buen día"),
-                    ComponentesUI.subtitulo("Desde este panel podés administrar el complejo Buena Caza."),
-                    indicadores,
-                    panelAccesosRapidos());
-            setContenido(resumen);
-        } catch (SQLException exception) {
-            mostrarErrorBase(exception);
-        }
-    }
-
-    private VBox panelAccesosRapidos() {
-        VBox panel = new VBox(12,
-                new Label("Accesos rápidos"),
-                ComponentesUI.subtitulo("Configurá precios por temporada o consultá el estado de ocupación."));
-        panel.getStyleClass().add("content-card");
-        panel.setPadding(new Insets(22));
-        HBox accesos = new HBox(12,
-                ComponentesUI.boton("Editar tarifas", "button-secondary", this::mostrarTemporadas),
-                ComponentesUI.boton("Ver ocupación", "button-secondary", this::mostrarOcupacion));
-        panel.getChildren().add(accesos);
-        return panel;
+    private void mostrarPanelInvitado() {
+        VentanaReserva portal = new VentanaReserva(stage, invitado, alCerrarSesion);
+        raiz.setCenter(portal.crearContenidoPanel());
     }
 
     private void mostrarInvitados() {
@@ -184,6 +159,7 @@ public class PantallaAdmin {
                     ColumnaTabla.crear("Con reservas", invitado ->
                             conReservas.get(invitado.getIdInvitado()) ? "Sí" : "No"),
                     ColumnaTabla.crear("Rol", invitado -> invitado.isEsAdmin() ? "Administrador" : "Invitado")));
+            fijarOrdenTabla(tabla);
             tabla.setPlaceholder(new Label("No hay invitados registrados."));
             Button nuevo = ComponentesUI.boton("Nuevo invitado", "button-primary",
                     () -> editarInvitado(null, true));
@@ -334,15 +310,21 @@ public class PantallaAdmin {
             TableView<Temporada> tabla = new TableView<>(
                     FXCollections.observableArrayList(adminController.listarTemporadas()));
             tabla.getColumns().setAll(java.util.List.of(
+                    ColumnaTabla.crear("ID", temporada -> String.valueOf(temporada.getIdTemporada())),
                     ColumnaTabla.crear("Temporada", temporada -> texto(temporada.getTipo())),
                     ColumnaTabla.crear("Desde", temporada -> fecha(temporada.getFechaInicio())),
-                    ColumnaTabla.crear("Hasta", temporada -> fecha(temporada.getFechaFinal())),
+                    ColumnaTabla.crear("Hasta (exclusiva)", temporada -> fecha(temporada.getFechaFinal())),
                     ColumnaTabla.crear("Precio por noche",
                             temporada -> moneda(temporada.getPrecioPorNoche()))));
+            fijarOrdenTabla(tabla);
             tabla.setPlaceholder(new Label("No hay temporadas configuradas."));
-            var editar = ComponentesUI.boton("Editar precio", "button-primary", () -> editarPrecio(tabla));
-            editar.setMaxWidth(170);
-            HBox acciones = new HBox(editar);
+            var agregar = ComponentesUI.boton("Agregar temporada", "button-secondary",
+                    () -> editarTemporada(null));
+            var editar = ComponentesUI.boton("Modificar", "button-primary",
+                    () -> editarTemporadaSeleccionada(tabla));
+            var eliminar = ComponentesUI.boton("Eliminar", "button-secondary",
+                    () -> eliminarTemporadaSeleccionada(tabla));
+            HBox acciones = new HBox(10, agregar, editar, eliminar);
             acciones.setAlignment(Pos.CENTER_RIGHT);
             setContenido(panelTabla(tabla, "Tarifas por temporada", acciones));
         } catch (SQLException exception) {
@@ -350,33 +332,155 @@ public class PantallaAdmin {
         }
     }
 
-    private void editarPrecio(TableView<Temporada> tabla) {
+    private void editarTemporadaSeleccionada(TableView<Temporada> tabla) {
         Temporada seleccionada = tabla.getSelectionModel().getSelectedItem();
         if (seleccionada == null) {
             ComponentesUI.mostrarInformacion(stage, "Elegí una temporada",
-                    "Seleccioná una fila antes de editar su precio.");
+                    "Seleccioná una fila antes de modificarla.");
             return;
         }
-        String precioActual = seleccionada.getPrecioPorNoche() == null
-                ? "" : seleccionada.getPrecioPorNoche().toPlainString();
-        TextInputDialog dialogo = new TextInputDialog(precioActual);
-        dialogo.setTitle("Actualizar tarifa");
-        dialogo.setHeaderText("Temporada " + seleccionada.getTipo());
-        dialogo.setContentText("Nuevo precio por noche:");
-        dialogo.initOwner(stage);
-        Optional<String> respuesta = dialogo.showAndWait();
-        if (respuesta.isEmpty()) {
+        editarTemporada(seleccionada);
+    }
+
+    private void editarTemporada(Temporada temporadaExistente) {
+        try {
+            List<TemporadaTipo> tipos = adminController.listarTiposTemporada();
+            if (tipos.isEmpty()) {
+                ComponentesUI.mostrarError(stage, "No hay tipos de temporada",
+                        "Agregá al menos un tipo de temporada en la base de datos antes de continuar.");
+                return;
+            }
+            ComboBox<TemporadaTipo> tipo = new ComboBox<>(FXCollections.observableArrayList(tipos));
+            tipo.setMaxWidth(Double.MAX_VALUE);
+            tipo.setConverter(new javafx.util.StringConverter<>() {
+                @Override
+                public String toString(TemporadaTipo valor) {
+                    return valor == null ? "" : valor.getTipo();
+                }
+
+                @Override
+                public TemporadaTipo fromString(String valor) {
+                    return tipos.stream().filter(opcion -> opcion.getTipo().equals(valor))
+                            .findFirst().orElse(null);
+                }
+            });
+            LocalDate fechaInicioPorDefecto = LocalDate.now();
+            if (temporadaExistente == null) {
+                fechaInicioPorDefecto = adminController.listarTemporadas().stream()
+                        .max(java.util.Comparator.comparingInt(Temporada::getIdTemporada))
+                        .map(Temporada::getFechaFinal)
+                        .orElse(fechaInicioPorDefecto);
+            }
+            DatePicker fechaInicio = new DatePicker(temporadaExistente == null
+                    ? fechaInicioPorDefecto : temporadaExistente.getFechaInicio());
+            DatePicker fechaFinal = new DatePicker(temporadaExistente == null
+                    ? fechaInicioPorDefecto.plusMonths(1) : temporadaExistente.getFechaFinal());
+            TextField precio = new TextField(temporadaExistente == null
+                    ? "" : temporadaExistente.getPrecioPorNoche().toPlainString());
+            precio.setPromptText("Ej.: 85000");
+            Label error = new Label();
+            error.setWrapText(true);
+            error.setStyle("-fx-text-fill: #a32020;");
+
+            if (temporadaExistente != null) {
+                tipo.getSelectionModel().select(tipos.stream()
+                        .filter(opcion -> opcion.getIdTemporadaTipo()
+                                == temporadaExistente.getIdTemporadaTipo())
+                        .findFirst().orElse(null));
+            } else {
+                tipo.getSelectionModel().selectFirst();
+            }
+
+            GridPane campos = new GridPane();
+            campos.setHgap(12);
+            campos.setVgap(12);
+            campos.addRow(0, new Label("Tipo:"), tipo);
+            campos.addRow(1, new Label("Fecha de inicio:"), fechaInicio);
+            campos.addRow(2, new Label("Fecha final (exclusiva):"), fechaFinal);
+            campos.addRow(3, new Label("Precio por noche:"), precio);
+            campos.add(error, 0, 4, 2, 1);
+
+            ButtonType guardar = new ButtonType("Guardar", ButtonBar.ButtonData.OK_DONE);
+            Dialog<ButtonType> dialogo = new Dialog<>();
+            dialogo.setTitle(temporadaExistente == null ? "Agregar temporada" : "Modificar temporada");
+            dialogo.setHeaderText(temporadaExistente == null
+                    ? "Ingresá los datos del nuevo período." : "Actualizá los datos del período.");
+            dialogo.getDialogPane().getButtonTypes().setAll(guardar, ButtonType.CANCEL);
+            dialogo.getDialogPane().setContent(campos);
+            dialogo.initOwner(stage);
+            dialogo.getDialogPane().lookupButton(guardar).addEventFilter(ActionEvent.ACTION, evento -> {
+                String problema = validarCamposTemporada(tipo.getValue(), fechaInicio.getValue(),
+                        fechaFinal.getValue(), precio.getText());
+                if (problema != null) {
+                    error.setText(problema);
+                    evento.consume();
+                }
+            });
+
+            Optional<ButtonType> respuesta = dialogo.showAndWait();
+            if (respuesta.isEmpty() || respuesta.get() != guardar) {
+                return;
+            }
+            BigDecimal precioPorNoche = new BigDecimal(precio.getText().trim().replace(',', '.'));
+            Temporada temporada = new Temporada(
+                    temporadaExistente == null ? 0 : temporadaExistente.getIdTemporada(),
+                    tipo.getValue().getIdTemporadaTipo(),
+                    fechaInicio.getValue(),
+                    fechaFinal.getValue(),
+                    precioPorNoche);
+            adminController.guardarTemporada(temporada);
+            mostrarTemporadas();
+        } catch (IllegalArgumentException exception) {
+            ComponentesUI.mostrarError(stage, "No se pudo guardar la temporada", exception.getMessage());
+        } catch (SQLException exception) {
+            mostrarErrorBase(exception);
+        }
+    }
+
+    private String validarCamposTemporada(TemporadaTipo tipo, LocalDate fechaInicio,
+            LocalDate fechaFinal, String textoPrecio) {
+        if (tipo == null) {
+            return "Seleccioná un tipo de temporada.";
+        }
+        if (fechaInicio == null || fechaFinal == null || !fechaFinal.isAfter(fechaInicio)) {
+            return "La fecha final debe ser posterior a la fecha de inicio.";
+        }
+        try {
+            BigDecimal precio = new BigDecimal(textoPrecio.trim().replace(',', '.'));
+            if (precio.signum() <= 0) {
+                return "El precio por noche debe ser mayor que cero.";
+            }
+        } catch (NumberFormatException exception) {
+            return "Ingresá un precio numérico válido.";
+        }
+        return null;
+    }
+
+    private void eliminarTemporadaSeleccionada(TableView<Temporada> tabla) {
+        Temporada seleccionada = tabla.getSelectionModel().getSelectedItem();
+        if (seleccionada == null) {
+            ComponentesUI.mostrarInformacion(stage, "Elegí una temporada",
+                    "Seleccioná una fila antes de eliminarla.");
+            return;
+        }
+        javafx.scene.control.Alert confirmacion = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        confirmacion.setTitle("Eliminar temporada");
+        confirmacion.setHeaderText("¿Eliminar la temporada " + texto(seleccionada.getTipo()) + "?");
+        confirmacion.setContentText("Se eliminará el período y su tarifa. No se puede eliminar "
+                + "una temporada asociada a reservas.");
+        confirmacion.initOwner(stage);
+        if (confirmacion.showAndWait().filter(respuesta -> respuesta == ButtonType.OK).isEmpty()) {
             return;
         }
         try {
-            BigDecimal precio = new BigDecimal(respuesta.get().trim().replace(',', '.'));
-            adminController.actualizarPrecio(seleccionada.getIdTemporada(), precio);
+            adminController.eliminarTemporada(seleccionada.getIdTemporada());
             mostrarTemporadas();
         } catch (IllegalArgumentException exception) {
-            ComponentesUI.mostrarError(stage, "Precio no válido",
-                    "Ingresá un importe numérico mayor que cero.");
+            ComponentesUI.mostrarError(stage, "No se pudo eliminar la temporada", exception.getMessage());
         } catch (SQLException exception) {
-            mostrarErrorBase(exception);
+            ComponentesUI.mostrarError(stage, "No se pudo eliminar la temporada",
+                    "La base de datos rechazó la eliminación.\n\n" + exception.getMessage());
         }
     }
 
@@ -411,7 +515,10 @@ public class PantallaAdmin {
                     ColumnaTabla.crear("Nombre", Invitado::getNombre),
                     ColumnaTabla.crear("DNI", invitado -> String.valueOf(invitado.getDni())),
                     ColumnaTabla.crear("Correo electrónico", Invitado::getEmail),
-                    ColumnaTabla.crear("Teléfono", invitado -> texto(invitado.getTelefono()))));
+                    ColumnaTabla.crear("Teléfono", invitado -> texto(invitado.getTelefono())),
+                    ColumnaTabla.crear("Admin", invitado -> invitado.isEsAdmin() ? "Sí" : "No"),
+                    ColumnaTabla.crear("Dirección", invitado -> texto(invitado.getDireccion()))));
+            fijarOrdenTabla(tabla);
             VBox contenedor = panelTabla(tabla, "Comunidad Buena Caza");
             contenedor.getChildren().add(0, busqueda);
             setContenido(contenedor);
@@ -431,8 +538,18 @@ public class PantallaAdmin {
                 ColumnaTabla.crear("Salida", reserva -> fecha(reserva.getFechaSalida())),
                 ColumnaTabla.crear("Temporada", ReservaDetalle::getTemporada),
                 ColumnaTabla.crear("Total", reserva -> moneda(reserva.getMontoTotal()))));
+        fijarOrdenTabla(tabla);
         tabla.setPlaceholder(new Label("No hay reservas para mostrar."));
         return tabla;
+    }
+
+    private <T> void fijarOrdenTabla(TableView<T> tabla) {
+        tabla.getColumns().forEach(columna -> {
+            columna.setReorderable(false);
+            columna.setSortable(false);
+        });
+        tabla.getSortOrder().clear();
+        tabla.setSortPolicy(tablaVista -> false);
     }
 
     private VBox panelTabla(TableView<?> tabla, String titulo) {
@@ -482,8 +599,11 @@ public class PantallaAdmin {
         if (precio == null) {
             return "—";
         }
-        return java.text.NumberFormat.getCurrencyInstance(java.util.Locale.forLanguageTag("es-AR"))
-                .format(precio);
+        NumberFormat formato = NumberFormat.getCurrencyInstance(java.util.Locale.forLanguageTag("es-AR"));
+        formato.setMinimumFractionDigits(0);
+        formato.setMaximumFractionDigits(0);
+        formato.setRoundingMode(RoundingMode.HALF_UP);
+        return formato.format(precio);
     }
 
     private String texto(String valor) {

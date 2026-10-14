@@ -185,6 +185,11 @@
 
 .table-row-cell:selected {
     -fx-background-color: #dff2eb;
+    -fx-text-background-color: #153e33;
+}
+
+.table-row-cell:selected .text {
+    -fx-fill: #153e33;
 }
 
 .login-art {
@@ -200,6 +205,20 @@
 .status-note {
     -fx-text-fill: #83938c;
     -fx-font-size: 12px;
+}
+
+.quote-error-panel {
+    -fx-background-color: #fff4c2;
+    -fx-background-radius: 10px;
+    -fx-border-color: #e7c84b;
+    -fx-border-radius: 10px;
+    -fx-padding: 12px;
+}
+
+.quote-error-message {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #735900;
 }
 
 .price-total {

@@ -132,7 +132,7 @@ public class ReservaDAO {
                 + "JOIN temporada t ON t.id_temporada = r.id_temporada "
                 + "JOIN temporada_tipo tt ON tt.id_temporada_tipo = t.id_temporada_tipo "
                 + (idInvitado == null ? "" : "WHERE r.id_invitado = ? ")
-                + "ORDER BY r.fecha_entrada DESC";
+                + "ORDER BY r.id_reserva";
         List<ReservaDetalle> reservas = new ArrayList<>();
         try (Connection conexion = Conexion.getConexion();
                 PreparedStatement sentencia = conexion.prepareStatement(sql)) {
