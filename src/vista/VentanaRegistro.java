@@ -78,7 +78,7 @@ public class VentanaRegistro {
         centro.setPadding(new Insets(30));
         centro.getStyleClass().add("page-background");
         VBox.setVgrow(tarjeta, Priority.NEVER);
-        Scene escena = new Scene(centro, 1060, 760);
+        Scene escena = new Scene(centro, 1470, 880);
         ComponentesUI.aplicarEstilos(escena);
         return escena;
     }

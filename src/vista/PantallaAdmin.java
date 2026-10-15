@@ -71,7 +71,7 @@ public class PantallaAdmin {
         raiz.setTop(crearEncabezado());
         raiz.setCenter(new VBox());
         raiz.getStyleClass().add("page-background");
-        Scene escena = new Scene(raiz, 1320, 840);
+        Scene escena = new Scene(raiz, 1470, 880);
         ComponentesUI.aplicarEstilos(escena);
         mostrarInvitados();
         return escena;
@@ -163,9 +163,9 @@ public class PantallaAdmin {
             tabla.setPlaceholder(new Label("No hay invitados registrados."));
             Button nuevo = ComponentesUI.boton("Nuevo invitado", "button-primary",
                     () -> editarInvitado(null, true));
-            Button editar = ComponentesUI.boton("Editar seleccionado", "button-secondary",
+            Button editar = ComponentesUI.boton("Editar seleccionado", "button-primary",
                     () -> editarSeleccionado(tabla.getSelectionModel().getSelectedItem()));
-            Button eliminar = ComponentesUI.boton("Eliminar seleccionado", "button-secondary",
+            Button eliminar = ComponentesUI.boton("Eliminar seleccionado", "button-primary",
                     () -> eliminarInvitado(tabla.getSelectionModel().getSelectedItem()));
             nuevo.setMaxWidth(180);
             editar.setMaxWidth(190);
@@ -208,6 +208,9 @@ public class PantallaAdmin {
         TextField email = entradaDialogo(nuevo ? "" : seleccionado.getEmail());
         TextField telefono = entradaDialogo(nuevo ? "" : texto(seleccionado.getTelefono()));
         TextField direccion = entradaDialogo(nuevo ? "" : seleccionado.getDireccion());
+        ComboBox<String> rol = new ComboBox<>(FXCollections.observableArrayList("Invitado", "Administrador"));
+        rol.setMaxWidth(Double.MAX_VALUE);
+        rol.setValue(!nuevo && seleccionado.isEsAdmin() ? "Administrador" : "Invitado");
         Label reservas = new Label(tieneReservas
                 ? "Tiene reservas registradas (descuento del 10%)."
                 : "Todavía no tiene reservas registradas.");
@@ -222,8 +225,9 @@ public class PantallaAdmin {
         formulario.addRow(2, new Label("Correo electrónico"), email);
         formulario.addRow(3, new Label("Teléfono"), telefono);
         formulario.addRow(4, new Label("Dirección"), direccion);
-        formulario.add(reservas, 0, 5, 2, 1);
-        formulario.add(error, 0, 6, 2, 1);
+        formulario.addRow(5, new Label("Rol"), rol);
+        formulario.add(reservas, 0, 6, 2, 1);
+        formulario.add(error, 0, 7, 2, 1);
         dialogo.getDialogPane().setContent(formulario);
         dialogo.setResultConverter(boton -> {
             if (boton != ButtonType.OK) {
@@ -243,7 +247,7 @@ public class PantallaAdmin {
                 return new Invitado(nuevo ? 0 : seleccionado.getIdInvitado(), numeroDni,
                         email.getText().trim(), nombre.getText().trim(),
                         telefono.getText().isBlank() ? null : telefono.getText().trim(),
-                        direccion.getText().trim(), nuevo ? false : seleccionado.isEsAdmin());
+                        direccion.getText().trim(), "Administrador".equals(rol.getValue()));
             } catch (NumberFormatException exception) {
                 error.setText("El DNI debe contener solo números.");
                 return null;
@@ -318,11 +322,11 @@ public class PantallaAdmin {
                             temporada -> moneda(temporada.getPrecioPorNoche()))));
             fijarOrdenTabla(tabla);
             tabla.setPlaceholder(new Label("No hay temporadas configuradas."));
-            var agregar = ComponentesUI.boton("Agregar temporada", "button-secondary",
+            var agregar = ComponentesUI.boton("Agregar temporada", "button-primary",
                     () -> editarTemporada(null));
             var editar = ComponentesUI.boton("Modificar", "button-primary",
                     () -> editarTemporadaSeleccionada(tabla));
-            var eliminar = ComponentesUI.boton("Eliminar", "button-secondary",
+            var eliminar = ComponentesUI.boton("Eliminar", "button-primary",
                     () -> eliminarTemporadaSeleccionada(tabla));
             HBox acciones = new HBox(10, agregar, editar, eliminar);
             acciones.setAlignment(Pos.CENTER_RIGHT);

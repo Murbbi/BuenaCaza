@@ -42,9 +42,9 @@ public class VentanaLogin {
         descripcion.setWrapText(true);
         VBox arte = new VBox(18, marca, descripcion);
         arte.setAlignment(Pos.CENTER_LEFT);
-        arte.setPadding(new Insets(70));
+        arte.setPadding(new Insets(48));
         arte.getStyleClass().add("login-art");
-        arte.setPrefWidth(470);
+        arte.setPrefWidth(430);
 
         Label etiqueta = new Label("BIENVENIDO");
         etiqueta.getStyleClass().add("eyebrow");
@@ -66,16 +66,16 @@ public class VentanaLogin {
                 ComponentesUI.campo("Contraseña", contrasena),
                 ingresar, estado, registrarse);
         formulario.getStyleClass().add("login-card");
-        formulario.setPadding(new Insets(42));
+        formulario.setPadding(new Insets(36));
         formulario.setMaxWidth(480);
 
         VBox panel = new VBox(formulario);
         panel.setAlignment(Pos.CENTER);
-        panel.setPadding(new Insets(36, 72, 36, 72));
+        panel.setPadding(new Insets(30));
         HBox raiz = new HBox(arte, panel);
         raiz.getStyleClass().add("page-background");
         HBox.setHgrow(panel, Priority.ALWAYS);
-        Scene escena = new Scene(raiz, 1120, 720);
+        Scene escena = new Scene(raiz, 1470, 880);
         ComponentesUI.aplicarEstilos(escena);
         return escena;
     }

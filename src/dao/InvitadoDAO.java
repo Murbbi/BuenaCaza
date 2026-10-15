@@ -168,7 +168,7 @@ public class InvitadoDAO {
 
     public boolean actualizar(Invitado invitado) throws SQLException {
         String sql = "UPDATE invitado SET dni = ?, email = ?, nombre = ?, telefono = ?, direccion = ?, "
-                + "contrasena_hash = COALESCE(?, contrasena_hash) WHERE id_invitado = ?";
+                + "contrasena_hash = COALESCE(?, contrasena_hash), es_admin = ? WHERE id_invitado = ?";
         try (Connection conexion = Conexion.getConexion();
                 PreparedStatement sentencia = conexion.prepareStatement(sql)) {
             sentencia.setInt(1, invitado.getDni());
@@ -177,7 +177,8 @@ public class InvitadoDAO {
             sentencia.setString(4, invitado.getTelefono());
             sentencia.setString(5, invitado.getDireccion().trim());
             sentencia.setString(6, invitado.getContrasenaHash());
-            sentencia.setInt(7, invitado.getIdInvitado());
+            sentencia.setInt(7, invitado.isEsAdmin() ? 1 : 0);
+            sentencia.setInt(8, invitado.getIdInvitado());
             if (sentencia.executeUpdate() == 1) {
                 return true;
             }

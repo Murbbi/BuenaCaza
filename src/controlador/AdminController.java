@@ -54,7 +54,6 @@ public class AdminController {
             throw new IllegalArgumentException("Completá nombre, DNI, correo y dirección.");
         }
         if (invitado.getIdInvitado() == 0) {
-            invitado.setEsAdmin(false);
             if (!invitadoDAO.insertar(invitado)) {
                 throw new IllegalStateException("No se pudo guardar el invitado.");
             }
