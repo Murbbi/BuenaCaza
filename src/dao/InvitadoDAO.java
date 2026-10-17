@@ -13,7 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InvitadoDAO {
+public class InvitadoDAO implements Dao<Invitado> {
     public boolean tieneReservas(int idInvitado) throws SQLException {
         if (idInvitado < 1) {
             return false;
@@ -118,6 +118,7 @@ public class InvitadoDAO {
         }
     }
 
+    @Override
     public List<Invitado> listar() throws SQLException {
         String sql = "SELECT id_invitado, dni, email, nombre, telefono, direccion, es_admin "
                 + "FROM invitado ORDER BY id_invitado";
@@ -134,6 +135,7 @@ public class InvitadoDAO {
         return invitados;
     }
 
+    @Override
     public boolean insertar(Invitado invitado) throws SQLException {
         String sql = "INSERT INTO invitado "
                 + "(dni, email, nombre, telefono, direccion, contrasena_hash, es_admin) "

@@ -10,7 +10,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CabanaDAO {
+public class CabanaDAO implements Dao<Cabana> {
+    @Override
     public List<Cabana> listar() throws SQLException {
         String sql = "SELECT id_cabana, nombre, capacidad, estado FROM cabana ORDER BY id_cabana";
         List<Cabana> cabanas = new ArrayList<>();
@@ -30,6 +31,7 @@ public class CabanaDAO {
         return cabanas;
     }
 
+    @Override
     public boolean insertar(Cabana cabana) throws SQLException {
         String sql = "INSERT INTO cabana (nombre, capacidad, estado) VALUES (?, ?, ?)";
 
