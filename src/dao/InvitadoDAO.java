@@ -1,6 +1,7 @@
 package dao;
 
 import conexion.Conexion;
+import modelo.Administrador;
 import modelo.Invitado;
 import seguridad.PasswordHasher;
 
@@ -39,14 +40,7 @@ public class InvitadoDAO {
                         || !PasswordHasher.coincide(contrasena, resultado.getString("contrasena_hash"))) {
                     return null;
                 }
-                return new Invitado(
-                        resultado.getInt("id_invitado"),
-                        resultado.getInt("dni"),
-                        resultado.getString("email"),
-                        resultado.getString("nombre"),
-                        resultado.getString("telefono"),
-                        resultado.getString("direccion"),
-                        resultado.getInt("es_admin") == 1);
+                return crearDesdeFila(resultado);
             }
         }
     }
@@ -112,7 +106,7 @@ public class InvitadoDAO {
                 }
 
                 conexion.commit();
-                Invitado registrado = new Invitado(idInvitado, invitado.getDni(), invitado.getEmail().trim(),
+                Invitado registrado = crear(idInvitado, invitado.getDni(), invitado.getEmail().trim(),
                         invitado.getNombre().trim(), invitado.getTelefono(), invitado.getDireccion().trim(),
                         esAdmin);
                 registrado.setContrasenaHash(hash);
@@ -133,15 +127,7 @@ public class InvitadoDAO {
                 PreparedStatement sentencia = conexion.prepareStatement(sql);
                 ResultSet resultado = sentencia.executeQuery()) {
             while (resultado.next()) {
-                invitados.add(new Invitado(
-                        resultado.getInt("id_invitado"),
-                        resultado.getInt("dni"),
-                        resultado.getString("email"),
-                        resultado.getString("nombre"),
-                        resultado.getString("telefono"),
-                        resultado.getString("direccion"),
-                        resultado.getInt("es_admin") == 1
-                ));
+                invitados.add(crearDesdeFila(resultado));
             }
         }
 
@@ -199,5 +185,25 @@ public class InvitadoDAO {
             sentencia.setInt(1, idInvitado);
             return sentencia.executeUpdate() == 1;
         }
+    }
+
+    private Invitado crearDesdeFila(ResultSet resultado) throws SQLException {
+        return crear(
+                resultado.getInt("id_invitado"),
+                resultado.getInt("dni"),
+                resultado.getString("email"),
+                resultado.getString("nombre"),
+                resultado.getString("telefono"),
+                resultado.getString("direccion"),
+                resultado.getInt("es_admin") == 1);
+    }
+
+    // Según la columna es_admin se crea un Administrador o un Invitado.
+    private Invitado crear(int idInvitado, int dni, String email, String nombre,
+            String telefono, String direccion, boolean esAdmin) {
+        if (esAdmin) {
+            return new Administrador(idInvitado, dni, email, nombre, telefono, direccion);
+        }
+        return new Invitado(idInvitado, dni, email, nombre, telefono, direccion);
     }
 }

@@ -158,7 +158,7 @@ public class PantallaAdmin {
                     ColumnaTabla.crear("Dirección", Invitado::getDireccion),
                     ColumnaTabla.crear("Con reservas", invitado ->
                             conReservas.get(invitado.getIdInvitado()) ? "Sí" : "No"),
-                    ColumnaTabla.crear("Rol", invitado -> invitado.isEsAdmin() ? "Administrador" : "Invitado")));
+                    ColumnaTabla.crear("Rol", Invitado::getRol)));
             fijarOrdenTabla(tabla);
             tabla.setPlaceholder(new Label("No hay invitados registrados."));
             Button nuevo = ComponentesUI.boton("Nuevo invitado", "button-primary",
@@ -279,7 +279,7 @@ public class PantallaAdmin {
                     "Seleccioná una fila antes de eliminar.");
             return;
         }
-        if (invitado.isEsAdmin()) {
+        if (invitado.puedeAdministrar()) {
             ComponentesUI.mostrarInformacion(stage, "Acción no permitida",
                     "Las cuentas administradoras no se pueden eliminar desde la gestión de invitados.");
             return;
@@ -516,7 +516,7 @@ public class PantallaAdmin {
                     ColumnaTabla.crear("DNI", invitado -> String.valueOf(invitado.getDni())),
                     ColumnaTabla.crear("Correo electrónico", Invitado::getEmail),
                     ColumnaTabla.crear("Teléfono", invitado -> texto(invitado.getTelefono())),
-                    ColumnaTabla.crear("Admin", invitado -> invitado.isEsAdmin() ? "Sí" : "No"),
+                    ColumnaTabla.crear("Admin", invitado -> invitado.puedeAdministrar() ? "Sí" : "No"),
                     ColumnaTabla.crear("Dirección", invitado -> texto(invitado.getDireccion()))));
             fijarOrdenTabla(tabla);
             VBox contenedor = panelTabla(tabla, "Comunidad Buena Caza");

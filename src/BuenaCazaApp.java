@@ -33,7 +33,7 @@ public class BuenaCazaApp extends Application {
     }
 
     private void abrirSesion(Invitado invitado) {
-        if (invitado.isEsAdmin()) {
+        if (invitado.puedeAdministrar()) {
             mostrarAdmin(invitado);
             return;
         }
