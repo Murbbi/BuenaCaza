@@ -103,6 +103,14 @@ public class Invitado {
         this.esAdmin = esAdmin;
     }
 
+    public String getRol() {
+        return "Invitado";
+    }
+
+    public boolean puedeAdministrar() {
+        return false;
+    }
+
     public boolean isComunidad() throws SQLException {
         return new InvitadoDAO().tieneReservas(idInvitado);
     }
