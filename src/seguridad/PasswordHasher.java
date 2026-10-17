@@ -51,8 +51,8 @@ public final class PasswordHasher {
     }
 
     public static void validarContrasena(char[] contrasena) {
-        if (contrasena == null || contrasena.length < 12 || contrasena.length > 128) {
-            throw new IllegalArgumentException("La contraseña debe tener entre 12 y 128 caracteres.");
+        if (contrasena == null || contrasena.length < 8 || contrasena.length > 128) {
+            throw new IllegalArgumentException("La contraseña debe tener entre 8 y 128 caracteres.");
         }
     }
 
