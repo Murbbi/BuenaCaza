@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TemporadaDAO {
+public class TemporadaDAO implements Dao<Temporada> {
     public List<TemporadaTipo> listarTipos() throws SQLException {
         String sql = "SELECT id_temporada_tipo, tipo FROM temporada_tipo ORDER BY tipo";
         List<TemporadaTipo> tipos = new ArrayList<>();
@@ -30,6 +30,7 @@ public class TemporadaDAO {
         return tipos;
     }
 
+    @Override
     public List<Temporada> listar() throws SQLException {
         String sql = "SELECT id_temporada, id_temporada_tipo, fecha_inicio, fecha_final, precio_por_noche FROM temporada ORDER BY id_temporada";
         List<Temporada> temporadas = new ArrayList<>();
@@ -51,6 +52,7 @@ public class TemporadaDAO {
         return temporadas;
     }
 
+    @Override
     public boolean insertar(Temporada temporada) throws SQLException {
         String sql = "INSERT INTO temporada (id_temporada_tipo, fecha_inicio, fecha_final, precio_por_noche) VALUES (?, ?, ?, ?)";
 

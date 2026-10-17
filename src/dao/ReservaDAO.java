@@ -12,7 +12,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReservaDAO {
+public class ReservaDAO implements Dao<Reserva> {
+    @Override
     public List<Reserva> listar() throws SQLException {
         String sql = "SELECT id_reserva, id_cabana, id_invitado, id_temporada, fecha_entrada, fecha_salida, monto_total, comentario FROM reserva ORDER BY id_reserva";
         List<Reserva> reservas = new ArrayList<>();
@@ -37,6 +38,7 @@ public class ReservaDAO {
         return reservas;
     }
 
+    @Override
     public boolean insertar(Reserva reserva) throws SQLException {
         String sql = "INSERT INTO reserva (id_cabana, id_invitado, id_temporada, fecha_entrada, fecha_salida, monto_total, comentario) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
