@@ -1,6 +1,5 @@
 import controlador.AutenticacionController;
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 import modelo.Invitado;
 import vista.ComponentesUI;
@@ -9,8 +8,9 @@ import vista.VentanaLogin;
 import vista.VentanaRegistro;
 import vista.VentanaReserva;
 
+// Clase principal: arranca la aplicación y cambia entre las pantallas
 public class BuenaCazaApp extends Application {
-    private final AutenticacionController autenticacionController = new AutenticacionController();
+    private AutenticacionController autenticacionController = new AutenticacionController();
     private Stage escenario;
 
     @Override
@@ -25,49 +25,28 @@ public class BuenaCazaApp extends Application {
     private void mostrarLogin() {
         VentanaLogin login = new VentanaLogin(escenario, autenticacionController,
                 this::abrirSesion, this::mostrarRegistro);
-        cambiarEscena(login.crearEscena());
+        escenario.setScene(login.crearEscena());
     }
 
     private void mostrarRegistro() {
         VentanaRegistro registro = new VentanaRegistro(escenario, autenticacionController,
                 this::abrirSesion, this::mostrarLogin);
-        cambiarEscena(registro.crearEscena());
+        escenario.setScene(registro.crearEscena());
     }
 
+    // Después del login se abre el panel que corresponde según el tipo de usuario
     private void abrirSesion(Invitado invitado) {
         if (invitado.puedeAdministrar()) {
             mostrarAdmin(invitado);
             return;
         }
         VentanaReserva portal = new VentanaReserva(escenario, invitado, this::mostrarLogin);
-        cambiarEscena(portal.crearEscena());
+        escenario.setScene(portal.crearEscena());
     }
 
     private void mostrarAdmin(Invitado invitado) {
         PantallaAdmin pantalla = new PantallaAdmin(escenario, invitado, this::mostrarLogin);
-        cambiarEscena(pantalla.crearEscena());
-    }
-
-    private void cambiarEscena(Scene escena) {
-        boolean maximizada = escenario.isMaximized();
-        double ancho = escenario.getWidth();
-        double alto = escenario.getHeight();
-        double x = escenario.getX();
-        double y = escenario.getY();
-        escenario.setScene(escena);
-        if (maximizada) {
-            escenario.setMaximized(true);
-        } else {
-            escenario.setX(x);
-            escenario.setY(y);
-            escenario.setWidth(ancho);
-            escenario.setHeight(alto);
-        }
-    }
-
-    @Override
-    public void stop() {
-        escenario = null;
+        escenario.setScene(pantalla.crearEscena());
     }
 
     public static void main(String[] args) {

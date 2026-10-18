@@ -1,42 +1,33 @@
 package vista;
 
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Control;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import java.net.URL;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
-public final class ComponentesUI {
-    private ComponentesUI() {
-    }
+// Métodos que se repiten en varias pantallas (estilos, botones, mensajes y formatos)
+public class ComponentesUI {
 
     public static void aplicarEstilos(Scene escena) {
-        URL hoja = ComponentesUI.class.getResource("buenacaza.css");
-        if (hoja == null) {
-            throw new IllegalStateException("No se encontró la hoja de estilos vista/buenacaza.css.");
-        }
-        escena.getStylesheets().add(hoja.toExternalForm());
+        escena.getStylesheets().add(ComponentesUI.class.getResource("buenacaza.css").toExternalForm());
     }
 
     public static void aplicarIcono(Stage ventana) {
-        for (String archivo : new String[] {"icono-32.png", "icono.png"}) {
-            URL imagen = ComponentesUI.class.getResource(archivo);
-            if (imagen == null) {
-                throw new IllegalStateException("No se encontró el ícono vista/" + archivo + ".");
-            }
-            ventana.getIcons().add(new Image(imagen.toExternalForm()));
-        }
+        ventana.getIcons().add(new Image(ComponentesUI.class.getResource("icono-32.png").toExternalForm()));
+        ventana.getIcons().add(new Image(ComponentesUI.class.getResource("icono.png").toExternalForm()));
     }
 
     public static void aplicarIcono(Dialog<?> dialogo) {
@@ -56,14 +47,13 @@ public final class ComponentesUI {
         return etiqueta;
     }
 
+    // Arma una etiqueta con el control abajo (por ejemplo "Correo electrónico" + el TextField)
     public static VBox campo(String nombre, Control control) {
         Label etiqueta = new Label(nombre);
         etiqueta.getStyleClass().add("field-label");
         control.getStyleClass().add("form-control");
         control.setMaxWidth(Double.MAX_VALUE);
-        VBox contenedor = new VBox(7, etiqueta, control);
-        VBox.setVgrow(control, Priority.NEVER);
-        return contenedor;
+        return new VBox(7, etiqueta, control);
     }
 
     public static Button boton(String texto, String clase, Runnable accion) {
@@ -74,47 +64,56 @@ public final class ComponentesUI {
         return boton;
     }
 
-    public static VBox tarjeta(String etiqueta, String valor, String detalle) {
-        Label nombre = new Label(etiqueta);
-        nombre.getStyleClass().add("metric-label");
-        Label numero = new Label(valor);
-        numero.getStyleClass().add("metric-value");
-        Label aclaracion = new Label(detalle);
-        aclaracion.getStyleClass().add("metric-detail");
-        aclaracion.setWrapText(true);
-        VBox tarjeta = new VBox(8, nombre, numero, aclaracion);
-        tarjeta.getStyleClass().add("metric-card");
-        tarjeta.setPadding(new Insets(18));
-        return tarjeta;
-    }
-
-    public static void mostrarError(Window propietario, String titulo, String mensaje) {
-        Alert alerta = new Alert(Alert.AlertType.ERROR);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(mensaje);
-        alerta.initOwner(propietario);
-        aplicarIcono(alerta);
-        alerta.showAndWait();
-    }
-
-    public static void mostrarInformacion(Window propietario, String titulo, String mensaje) {
-        Alert alerta = new Alert(Alert.AlertType.INFORMATION);
-        alerta.setTitle(titulo);
-        alerta.setHeaderText(null);
-        alerta.setContentText(mensaje);
-        alerta.initOwner(propietario);
-        aplicarIcono(alerta);
-        alerta.showAndWait();
-    }
-
     public static void prepararCampo(TextField campo) {
         campo.getStyleClass().add("form-control");
         campo.setMaxWidth(Double.MAX_VALUE);
     }
 
-    public static void prepararContrasena(PasswordField campo) {
-        campo.getStyleClass().add("form-control");
-        campo.setMaxWidth(Double.MAX_VALUE);
+    public static void mostrarError(Window ventana, String titulo, String mensaje) {
+        mostrarAlerta(Alert.AlertType.ERROR, ventana, titulo, mensaje);
+    }
+
+    public static void mostrarInformacion(Window ventana, String titulo, String mensaje) {
+        mostrarAlerta(Alert.AlertType.INFORMATION, ventana, titulo, mensaje);
+    }
+
+    public static boolean confirmar(Window ventana, String titulo, String pregunta) {
+        Alert alerta = new Alert(Alert.AlertType.CONFIRMATION);
+        alerta.setTitle(titulo);
+        alerta.setHeaderText(pregunta);
+        alerta.initOwner(ventana);
+        aplicarIcono(alerta);
+        return alerta.showAndWait().orElse(null) == javafx.scene.control.ButtonType.OK;
+    }
+
+    private static void mostrarAlerta(Alert.AlertType tipo, Window ventana, String titulo, String mensaje) {
+        Alert alerta = new Alert(tipo);
+        alerta.setTitle(titulo);
+        alerta.setHeaderText(null);
+        alerta.setContentText(mensaje);
+        alerta.initOwner(ventana);
+        aplicarIcono(alerta);
+        alerta.showAndWait();
+    }
+
+    // Muestra los montos como "$ 85.000"
+    public static String moneda(BigDecimal valor) {
+        if (valor == null) {
+            return "—";
+        }
+        NumberFormat formato = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
+        formato.setMaximumFractionDigits(0);
+        return formato.format(valor);
+    }
+
+    public static String fecha(LocalDate fecha) {
+        return fecha.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    public static String texto(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return "—";
+        }
+        return valor;
     }
 }

@@ -19,4 +19,10 @@ public class TemporadaTipo {
     public void setTipo(String tipo) {
         this.tipo = tipo;
     }
-}
+
+    // Así el ComboBox muestra "Alta", "Media" o "Baja"
+    @Override
+    public String toString() {
+        return tipo;
+    }
+}
