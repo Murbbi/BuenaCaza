@@ -3,6 +3,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import modelo.Invitado;
+import vista.ComponentesUI;
 import vista.PantallaAdmin;
 import vista.VentanaLogin;
 import vista.VentanaRegistro;
@@ -16,6 +17,7 @@ public class BuenaCazaApp extends Application {
     public void start(Stage escenario) {
         this.escenario = escenario;
         escenario.setTitle("Buena Caza | Reservas");
+        ComponentesUI.aplicarIcono(escenario);
         mostrarLogin();
         escenario.show();
     }

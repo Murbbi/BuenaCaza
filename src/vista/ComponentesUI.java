@@ -5,11 +5,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Control;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import java.net.URL;
@@ -24,6 +27,20 @@ public final class ComponentesUI {
             throw new IllegalStateException("No se encontró la hoja de estilos vista/buenacaza.css.");
         }
         escena.getStylesheets().add(hoja.toExternalForm());
+    }
+
+    public static void aplicarIcono(Stage ventana) {
+        for (String archivo : new String[] {"icono-32.png", "icono.png"}) {
+            URL imagen = ComponentesUI.class.getResource(archivo);
+            if (imagen == null) {
+                throw new IllegalStateException("No se encontró el ícono vista/" + archivo + ".");
+            }
+            ventana.getIcons().add(new Image(imagen.toExternalForm()));
+        }
+    }
+
+    public static void aplicarIcono(Dialog<?> dialogo) {
+        aplicarIcono((Stage) dialogo.getDialogPane().getScene().getWindow());
     }
 
     public static Label titulo(String texto) {
@@ -77,6 +94,7 @@ public final class ComponentesUI {
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
         alerta.initOwner(propietario);
+        aplicarIcono(alerta);
         alerta.showAndWait();
     }
 
@@ -86,6 +104,7 @@ public final class ComponentesUI {
         alerta.setHeaderText(null);
         alerta.setContentText(mensaje);
         alerta.initOwner(propietario);
+        aplicarIcono(alerta);
         alerta.showAndWait();
     }
 

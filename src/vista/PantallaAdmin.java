@@ -202,6 +202,7 @@ public class PantallaAdmin {
         dialogo.setTitle(nuevo ? "Nuevo invitado" : "Editar invitado");
         dialogo.setHeaderText(nuevo ? "Ingresá los datos del huésped" : seleccionado.getNombre());
         dialogo.initOwner(stage);
+        ComponentesUI.aplicarIcono(dialogo);
         dialogo.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
         TextField nombre = entradaDialogo(nuevo ? "" : seleccionado.getNombre());
         TextField dni = entradaDialogo(nuevo ? "" : String.valueOf(seleccionado.getDni()));
@@ -291,6 +292,7 @@ public class PantallaAdmin {
         confirmacion.setContentText("La cuenta asociada también se eliminará. No se puede borrar un invitado "
                 + "que tenga reservas registradas.");
         confirmacion.initOwner(stage);
+        ComponentesUI.aplicarIcono(confirmacion);
         if (confirmacion.showAndWait().filter(respuesta -> respuesta == ButtonType.OK).isEmpty()) {
             return;
         }
@@ -408,6 +410,7 @@ public class PantallaAdmin {
             dialogo.getDialogPane().getButtonTypes().setAll(guardar, ButtonType.CANCEL);
             dialogo.getDialogPane().setContent(campos);
             dialogo.initOwner(stage);
+            ComponentesUI.aplicarIcono(dialogo);
             dialogo.getDialogPane().lookupButton(guardar).addEventFilter(ActionEvent.ACTION, evento -> {
                 String problema = validarCamposTemporada(tipo.getValue(), fechaInicio.getValue(),
                         fechaFinal.getValue(), precio.getText());
@@ -470,6 +473,7 @@ public class PantallaAdmin {
         confirmacion.setContentText("Se eliminará el período y su tarifa. No se puede eliminar "
                 + "una temporada asociada a reservas.");
         confirmacion.initOwner(stage);
+        ComponentesUI.aplicarIcono(confirmacion);
         if (confirmacion.showAndWait().filter(respuesta -> respuesta == ButtonType.OK).isEmpty()) {
             return;
         }

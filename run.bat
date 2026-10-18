@@ -31,4 +31,5 @@ if errorlevel 1 exit /b %errorlevel%
 
 if not exist out\vista mkdir out\vista
 copy /Y src\vista\buenacaza.css out\vista\buenacaza.css >nul
+copy /Y src\vista\*.png out\vista\ >nul
 java --module-path "%JAVAFX_LIB%" --add-modules javafx.controls -cp "out;%MYSQL_DRIVER%" BuenaCazaApp
