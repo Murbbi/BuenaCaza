@@ -4,6 +4,7 @@ import controlador.AutenticacionController;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -14,17 +15,17 @@ import javafx.stage.Stage;
 import modelo.Invitado;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class VentanaLogin {
-    private static final String EMAIL_DESARROLLO = "matias@gmail.com";
-    private static final String CONTRASENA_DESARROLLO = "1234567891011";
+    private Stage stage;
+    private AutenticacionController autenticacionController;
+    private Consumer<Invitado> alIngresar;
+    private Runnable alRegistrarse;
 
-    private final Stage stage;
-    private final AutenticacionController autenticacionController;
-    private final Consumer<Invitado> alIngresar;
-    private final Runnable alRegistrarse;
+    private TextField email = new TextField();
+    private PasswordField contrasena = new PasswordField();
+    private Label estado = ComponentesUI.subtitulo("");
 
     public VentanaLogin(Stage stage, AutenticacionController autenticacionController,
             Consumer<Invitado> alIngresar, Runnable alRegistrarse) {
@@ -35,31 +36,31 @@ public class VentanaLogin {
     }
 
     public Scene crearEscena() {
+        // Parte izquierda con el nombre del complejo
         Label marca = new Label("Buena Caza");
         marca.getStyleClass().add("brand-title");
         Label descripcion = new Label("Un lugar para volver.\nUna estadía para recordar.");
         descripcion.getStyleClass().add("brand-caption");
-        descripcion.setWrapText(true);
         VBox arte = new VBox(18, marca, descripcion);
         arte.setAlignment(Pos.CENTER_LEFT);
         arte.setPadding(new Insets(70));
         arte.getStyleClass().add("login-art");
         arte.setPrefWidth(470);
 
+        // Formulario de ingreso
         Label etiqueta = new Label("BIENVENIDO");
         etiqueta.getStyleClass().add("eyebrow");
         Label titulo = ComponentesUI.titulo("Iniciar sesión");
         Label subtitulo = ComponentesUI.subtitulo("Ingresá con tu correo y contraseña para continuar.");
-        TextField email = new TextField();
-        email.setText(EMAIL_DESARROLLO);
+
+        // Datos de prueba para no tener que escribirlos cada vez
+        email.setText("matias@gmail.com");
         email.setPromptText("nombre@correo.com");
-        PasswordField contrasena = new PasswordField();
-        contrasena.setText(CONTRASENA_DESARROLLO);
+        contrasena.setText("1234567891011");
         contrasena.setPromptText("Tu contraseña");
-        Label estado = ComponentesUI.subtitulo("");
-        estado.setWrapText(true);
-        var ingresar = ComponentesUI.boton("Ingresar", "button-primary", () -> ingresar(email, contrasena, estado));
-        var registrarse = ComponentesUI.boton("Crear una cuenta", "button-link", alRegistrarse);
+
+        Button ingresar = ComponentesUI.boton("Ingresar", "button-primary", this::ingresar);
+        Button registrarse = ComponentesUI.boton("Crear una cuenta", "button-link", alRegistrarse);
 
         VBox formulario = new VBox(18, etiqueta, titulo, subtitulo,
                 ComponentesUI.campo("Correo electrónico", email),
@@ -75,32 +76,24 @@ public class VentanaLogin {
         HBox raiz = new HBox(arte, panel);
         raiz.getStyleClass().add("page-background");
         HBox.setHgrow(panel, Priority.ALWAYS);
+
         Scene escena = new Scene(raiz, 1120, 720);
         ComponentesUI.aplicarEstilos(escena);
         return escena;
     }
 
-    private void ingresar(TextField email, PasswordField contrasena, Label estado) {
-        char[] clave = contrasena.getText().toCharArray();
-        boolean ingresoExitoso = false;
+    private void ingresar() {
         try {
-            Invitado invitado = autenticacionController.iniciarSesion(email.getText(), clave);
+            Invitado invitado = autenticacionController.iniciarSesion(email.getText(),
+                    contrasena.getText().toCharArray());
             if (invitado == null) {
                 estado.setText("El correo o la contraseña no son correctos.");
                 return;
             }
-            estado.setText("");
-            ingresoExitoso = true;
             alIngresar.accept(invitado);
-        } catch (SQLException exception) {
+        } catch (SQLException e) {
             ComponentesUI.mostrarError(stage, "No se pudo iniciar sesión",
-                    "No se pudo consultar la cuenta. Verificá la conexión y el esquema de MySQL.\n\n"
-                            + exception.getMessage());
-        } finally {
-            Arrays.fill(clave, '\0');
-            if (ingresoExitoso) {
-                contrasena.clear();
-            }
+                    "No hay conexión con la base de datos.\n" + e.getMessage());
         }
     }
 }
