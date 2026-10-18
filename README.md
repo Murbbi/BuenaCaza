@@ -1,13 +1,13 @@
 # Buena Caza
 
-Aplicación de reservas para el complejo Buena Caza, implementada en JavaFX con arquitectura MVC y persistencia MySQL. Las pantallas siguen los flujos definidos en `Documentos/Urbicain Matias-AP2.pdf`: inicio de sesión, registro de invitados, reservas, administración de huéspedes, tarifas por temporada y reportes.
+Aplicación de reservas para el complejo Buena Caza, implementada en JavaFX con arquitectura MVC y persistencia MySQL. 
 
 ## Requisitos
 
 - JDK 25 o superior (JavaFX 27 necesita Java 25 para ejecutarse). Instalar con `winget install Oracle.JDK.25`
-- JavaFX SDK 27 para Windows. Descomprimilo en `lib/javafx-sdk-27/` para que exista `lib/javafx-sdk-27/lib/`.
+- JavaFX SDK 27 para Windows. Descomprimilo en `lib/javafx-sdk-27/`.
 - MySQL Server con la base `buena_caza`.
-- MySQL Connector/J, ya incluido en `lib/`.
+- MySQL Connector/J, incluirlo `mysql-connector-j-26.7.0.jar` en `lib/`.
 
 ## Preparar la base de datos
 
