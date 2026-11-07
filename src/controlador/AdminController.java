@@ -1,5 +1,6 @@
 package controlador;
 
+import archivo.ExportadorInvitados;
 import dao.InvitadoDAO;
 import dao.ReservaDAO;
 import dao.TemporadaDAO;
@@ -8,6 +9,8 @@ import modelo.ReservaDetalle;
 import modelo.Temporada;
 import modelo.TemporadaTipo;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -64,6 +67,12 @@ public class AdminController {
         } else {
             temporadaDAO.actualizar(temporada);
         }
+    }
+
+    // Guarda el listado de clientes en un archivo de texto con columnas de ancho fijo
+    public int exportarInvitados(List<Invitado> invitados, List<Integer> conReservas, File destino)
+            throws IOException {
+        return new ExportadorInvitados(conReservas).exportar(invitados, destino);
     }
 
     public void eliminarTemporada(int idTemporada) throws SQLException {

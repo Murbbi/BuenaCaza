@@ -21,12 +21,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import modelo.Invitado;
 import modelo.ReservaDetalle;
 import modelo.Temporada;
 import modelo.TemporadaTipo;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -164,6 +167,27 @@ public class PantallaAdmin {
                     panelTabla("Listado de invitados", tabla, nuevo, editar, eliminar));
         } catch (SQLException e) {
             mostrarErrorBase(e);
+        }
+    }
+
+    // Pide dónde guardar el archivo y exporta todos los clientes en texto con columnas fijas
+    private void exportarInvitados(List<Invitado> invitados, List<Integer> conReservas) {
+        FileChooser selector = new FileChooser();
+        selector.setTitle("Exportar clientes");
+        selector.setInitialFileName("clientes_" + LocalDate.now() + ".txt");
+        selector.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivo de texto", "*.txt"));
+        File destino = selector.showSaveDialog(stage);
+        if (destino == null) {
+            return; // El usuario canceló
+        }
+
+        try {
+            int cantidad = adminController.exportarInvitados(invitados, conReservas, destino);
+            ComponentesUI.mostrarInformacion(stage, "Exportación terminada",
+                    "Se exportaron " + cantidad + " clientes a:\n" + destino.getAbsolutePath());
+        } catch (IOException e) {
+            ComponentesUI.mostrarError(stage, "No se pudo exportar",
+                    "Revisá que la carpeta exista y que el archivo no esté abierto.\n" + e.getMessage());
         }
     }
 
@@ -377,8 +401,8 @@ public class PantallaAdmin {
 
     private void mostrarReporteInvitados() {
         try {
-            FilteredList<Invitado> filtrados = new FilteredList<>(
-                    FXCollections.observableArrayList(adminController.listarInvitados()));
+            List<Invitado> invitados = adminController.listarInvitados();
+            FilteredList<Invitado> filtrados = new FilteredList<>(FXCollections.observableArrayList(invitados));
             TableView<Invitado> tabla = new TableView<>(filtrados);
             tabla.getColumns().add(ColumnaTabla.crear("Nombre", Invitado::getNombre));
             tabla.getColumns().add(ColumnaTabla.crear("DNI", inv -> String.valueOf(inv.getDni())));
@@ -398,7 +422,18 @@ public class PantallaAdmin {
                         || String.valueOf(inv.getDni()).contains(buscado));
             });
 
-            VBox panel = panelTabla("Comunidad Buena Caza", tabla);
+            // Ids de los invitados con reservas, para la columna "CON RESERVAS" del archivo
+            List<Integer> conReservas = new ArrayList<>();
+            for (Invitado inv : invitados) {
+                if (inv.isComunidad()) {
+                    conReservas.add(inv.getIdInvitado());
+                }
+            }
+            Button exportar = ComponentesUI.boton("Exportar a TXT", "button-secondary",
+                    () -> exportarInvitados(invitados, conReservas));
+            exportar.setMaxWidth(160);
+
+            VBox panel = panelTabla("Comunidad Buena Caza", tabla, exportar);
             panel.getChildren().add(0, busqueda);
             mostrarPagina("Reporte de invitados", "Buscá en la comunidad de huéspedes registrados.", panel);
         } catch (SQLException e) {
