@@ -24,5 +24,12 @@ Desde la carpeta del proyecto, ejecutá:
 ```powershell
 .\run.bat
 ```
+## Video explicativo
+
+https://youtu.be/fQVEFhU8Teg
+
+## Codigo 
+
+https://github.com/Murbbi/BuenaCaza.git
 
 
