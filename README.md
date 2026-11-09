@@ -26,7 +26,7 @@ Desde la carpeta del proyecto, ejecutá:
 ```
 ## Video explicativo
 
-https://youtu.be/fQVEFhU8Teg
+[https://youtu.be/fQVEFhU8Teg](https://youtu.be/Oy2sUSP3uok)
 
 ## Codigo 
 
